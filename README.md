@@ -1,4 +1,8 @@
+⚠️ 免责声明 / Disclaimer
 
+本代码仅用于学习使用，禁止用于任何商业用途。违反本声明引发的任何问题我们不承担任何法律责任。
+
+This code is for educational purposes only. Commercial use is strictly prohibited. We assume no legal liability for any issues arising from violation of this statement.
 
 # OCPU - Open CPU Core 3.0
 
