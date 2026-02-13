@@ -1,0 +1,48 @@
+# RISC-V RV64I Test Program
+# Simple test program for OCPU core
+
+# Address 0x8000_0000 - Reset vector
+80000000: 00000013  # nop
+80000004: 00000013  # nop
+80000008: 00000013  # nop
+
+# Initialize registers
+8000000c: 00000113  # li x2, 0      (zero x2)
+80000010: 00100193  # li x3, 1      (x3 = 1)
+80000014: 00200213  # li x4, 2      (x4 = 2)
+80000018: 00300293  # li x5, 3      (x5 = 3)
+
+# Arithmetic tests
+8000001c: 003101b3  # add x3, x2, x3  (x3 = 0 + 1 = 1)
+80000020: 00420233  # add x4, x4, x4  (x4 = 2 + 2 = 4)
+80000024: 005282b3  # add x5, x5, x5  (x5 = 3 + 3 = 6)
+
+# Subtraction test
+80000028: 405202b3  # sub x5, x4, x5  (x5 = 4 - 6 = -2)
+
+# Logical tests
+8000002c: 00f1f133  # and x2, x3, x4  (x2 = 1 & 4 = 0)
+80000030: 00e1e1b3  # or x3, x3, x4   (x3 = 1 | 4 = 5)
+
+# Shift tests
+80000034: 00319193  # slli x3, x3, 3  (x3 = 5 << 3 = 40)
+
+# Store/Load test
+80000038: 00302123  # sw x3, 2(x0)    (mem[2] = 40)
+8000003c: 00002183  # lw x3, 0(x0)    (x3 = mem[0])
+
+# Branch test
+80000040: 00000313  # li x6, 0        (x6 = 0)
+80000044: 00100313  # li x6, 1        (x6 = 1)
+80000048: 00100393  # li x7, 1        (x7 = 1)
+8000004c: 00730c63  # beq x6, x7, +24 (branch if x6 == x7)
+
+# Jump test
+80000050: 008000ef  # jal x1, +8      (call subroutine)
+80000054: 00000013  # nop
+
+# Subroutine
+80000058: 00008067  # jalr x0, x1, 0  (return)
+
+# End of test - infinite loop
+8000005c: 0000006f  # j .             (infinite loop)
