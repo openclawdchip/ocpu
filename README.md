@@ -4,460 +4,269 @@
 
 This code is for educational purposes only. Commercial use is strictly prohibited. We assume no legal liability for any issues arising from violation of this statement.
 
-# OCPU - Open CPU Core 3.0
+# OCPU - Open CPU
 
-<p align="center">
-  <b>High-Performance 64-bit RISC-V Superscalar Processor Design - 3nm Process + 512-bit Bus</b>
-</p>
+**OCPU (Open CPU)** 是一个开源的高性能RISC-V处理器设计，采用创新的双模架构（人类模式+Agent模式），支持纯64位RISC-V指令集架构（RV64I/M/F/D/V）。
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-  <img src="https://img.shields.io/badge/RTL%20Files-420-green.svg" alt="RTL Files">
-  <img src="https://img.shields.io/badge/Architecture-RV64I%2FM%2FF%2FD%2FV-orange.svg" alt="Architecture">
-  <img src="https://img.shields.io/badge/Process-3nm-red.svg" alt="Process">
-  <img src="https://img.shields.io/badge/Bus-512--bit-yellow.svg" alt="Bus">
-  <img src="https://img.shields.io/badge/Status-Complete-success.svg" alt="Status">
-</p>
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![RISC-V](https://img.shields.io/badge/RISC--V-RV64G-blue)](https://riscv.org/)
+[![Architecture](https://img.shields.io/badge/Architecture-Dual--Mode-green)]()
 
 ---
 
-## 🎯 Project Overview
+## 🎯 项目简介
 
-**OCPU** is a fully open-source high-performance 64-bit RISC-V superscalar processor core implemented in SystemVerilog. The design features a complete pipeline, branch prediction, MMU, cache hierarchy, and vector/floating-point units.
+OCPU是一个面向未来的开源处理器设计，结合了传统OOO乱序执行和现代Agent静态调度两种架构模式，为通用计算和AI加速提供了统一的硬件平台。
 
-### 🏭 3nm Process + 512-bit Bus Features
+### 核心特性
 
-- **Process Node**: 3nm advanced process
-- **Bus Width**: 512-bit internal bus (4x bandwidth improvement)
-- **Clock Frequency**: 3GHz+ (supports up to 4GHz)
-- **Issue Width**: 16 instructions per cycle
-- **Vector Registers**: 1024-bit wide (VLEN=1024)
+- **🔄 双模架构**: 人类模式（OOO）+ Agent模式（静态调度）
+- **⚡ 高性能**: 16发射超标量，256-entry ROB，44个执行单元
+- **🔧 纯64位**: RV64I/M/F/D/V完整支持，无32位兼容负担
+- **📊 向量扩展**: RISC-V Vector v1.0，1024-bit VLEN
+- **💾 存储层次**: 256KB L1-I / 64KB L1-D / 4MB L2
+- **🤖 Agent原生**: 支持Agent实时代码生成与执行
 
-> ⚠️ **Important**: This design supports only 64-bit architecture (RV64I/M/F/D/V). All 32-bit related functionality has been removed.
+---
 
-## 📊 Project Statistics
+## 🏗️ 架构概览
 
-| Metric | Value |
-|--------|-------|
-| **Total RTL Files** | **420** |
-| **Estimated Lines of Code** | ~50,000+ |
-| **Core Modules** | 11 |
-| **Process Node** | 3nm |
-| **Bus Width** | 512-bit |
+### 人类模式 (Human Mode)
 
-## 🏗️ Module Architecture
+传统OOO乱序执行架构，优化单线程性能：
 
-| Module | File Count | Primary Function |
-|--------|------------|------------------|
-| [ifetch](rtl/ifetch/) | 40 | Fetch unit, branch prediction (BTB/GHB/RAS/TAGE), prefetcher, I-Cache interface |
-| [idecode](rtl/idecode/) | 40 | Instruction decode, micro-op generation, RVC compressed instructions, exception detection |
-| [rename](rtl/rename/) | 40 | Register renaming, RAT, free list, checkpoints, recovery logic |
-| [issue](rtl/issue/) | 38 | Issue queue, scoreboard, wake-up logic, scheduler, dispatch unit |
-| [execute](rtl/execute/) | 54 | ALU, MAC, DIV, FPU, VPU, branch execution, bypass network |
-| [loadstore](rtl/loadstore/) | 43 | LSU, D-Cache, Store Buffer, Load Buffer, forwarding, AMO |
-| [commit](rtl/commit/) | 41 | ROB, exception handling, CSR, mstatus/mepc/mcause, etc. |
-| [mmu](rtl/mmu/) | 40 | TLB (ITLB/DTLB/STLB), page table walker, PMP check |
-| [level2](rtl/level2/) | 41 | L2 cache, coherency, CHI protocol, replacement policy, prefetch |
-| [core](rtl/core/) | 40 | Core control, interrupt handling, timer, debug interface, Hart management |
-| [include](rtl/include/) | 3 | Global header files, parameter definitions, macro definitions |
-
-## 🚀 Core Configuration
-
-### Processor Configuration (OCPU 3.0)
-
-| Parameter | Configuration | Description |
-|-----------|---------------|-------------|
-| **Process Node** | 3nm | Advanced semiconductor process |
-| **Bus Width** | 512-bit | Internal data bus |
-| **Clock Frequency** | 3GHz+ | Maximum support 4GHz |
-| **Issue Width** | 16 | Instructions issued per cycle |
-| **ROB Depth** | 256 | Reorder buffer entries |
-| **Physical Registers** | 512 | Integer/floating-point registers |
-
-### Execution Unit Configuration
-
-| Unit Type | Count | Description |
-|-----------|-------|-------------|
-| **Integer Unit (SX)** | 10 | Single-issue ALU |
-| **Multiply-Add Unit (MX)** | 6 | MAC operations |
-| **Load/Store Unit** | 8 | 4 Load + 4 Store |
-| **Floating-Point Unit (FPU)** | 6 | IEEE 754-2008 |
-| **Vector Unit (VEC)** | 8 | SIMD operations |
-| **Branch Unit (BR)** | 4 | Branch prediction execution |
-
-### Cache Configuration
-
-| Cache | Size | Ways | Interface Width |
-|-------|------|------|-----------------|
-| **L1-I Cache** | 256KB | 8-way | 512-bit |
-| **L1-D Cache** | 64KB | 8-way | 512-bit |
-| **L2 Cache** | 4MB | 16-way | 512-bit |
-
-### Vector Register Configuration
-
-| Parameter | Configuration | Description |
-|-----------|---------------|-------------|
-| **Vector Register Count** | 256 | Physical registers |
-| **Vector Register Width** | 1024-bit | VLEN=1024 |
-| **Maximum Vector Length** | 16 | When LMUL=1 |
-
-## 🚀 Quick Start
-
-### Environment Requirements
-
-- **Simulation Tools**: Verilator (recommended), VCS, ModelSim, Xcelium
-- **Synthesis Tools**: Xilinx Vivado, Intel Quartus, Synopsys Design Compiler
-- **Compiler Tools**: RISC-V 64-bit GNU toolchain
-- **System Requirements**: Linux/macOS, Python 3.8+, Make
-
-### Install Dependencies
-
-```bash
-# Ubuntu/Debian
-sudo apt-get install verilator gtkwave python3 python3-pip
-
-# macOS
-brew install verilator gtkwave python3
-
-# Install Python dependencies
-pip3 install -r requirements.txt
+```
+┌─────────────────────────────────────────────────────────────┐
+│  16-wide Fetch  →  Decode  →  Rename  →  Issue  →  Execute  │
+│  256KB L1-I        16-wide     512 PREG    OOO      44 EU    │
+│  BTB/GHB/RAS                                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Clone Repository
+**规格参数**:
+- 发射宽度: 16
+- ROB深度: 256
+- 物理寄存器: 512 (标量) + 256 (向量)
+- 执行单元: 10 SX + 6 MX + 6 FPU + 8 VPU + 8 LSU + 4 BR + 2 DIV
+- 分支预测: BTB 2048 + GHB 8192 + RAS 32 + TAGE
 
-```bash
-git clone https://github.com/openclawdchip/ocpu/ocpu.git
-cd ocpu
+### Agent模式 (Agent Mode)
+
+静态调度架构，面向AI和确定性计算：
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Task Descriptor → Code Generator → Static Scheduler → SRAM │
+│  (128-bit)          (Real-time)     (Deterministic)         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Run Simulation
+**规格参数**:
+- 静态发射宽度: 16
+- 调度表: 256条目
+- SRAM: 512KB (16 Bank × 32KB)
+- 延迟: 2周期确定性
+- 代码生成: 实时，无软件概念
 
-```bash
-cd sim
-make build
-make run
-```
+---
 
-### Run Tests
-
-```bash
-# Run basic tests
-make test TEST=basic
-
-# Run RISC-V compliance tests
-make test TEST=riscv_compliance
-
-# Run all tests
-make test_all
-```
-
-## 📁 Project Structure
+## 📁 项目结构
 
 ```
 ocpu/
-├── rtl/                    # RTL source code (420 SystemVerilog files)
-│   ├── ifetch/            # Fetch unit
-│   ├── idecode/           # Decode unit
-│   ├── rename/            # Rename unit
-│   ├── issue/             # Issue unit
-│   ├── execute/           # Execute unit
-│   ├── loadstore/         # Load/Store unit
-│   ├── commit/            # Commit unit
-│   ├── mmu/               # Memory Management Unit
-│   ├── level2/            # L2 cache
-│   ├── core/              # Core control
-│   └── include/           # Global header files
-├── docs/                  # Documentation
-│   ├── architecture.md    # Architecture documentation
-│   ├── developer_guide.md # Developer guide
-│   └── modules/           # Module detailed design
-├── sim/                   # Simulation environment
+├── rtl/                      # RTL源代码 (420+ SystemVerilog文件)
+│   ├── include/              # 全局头文件和参数定义
+│   ├── ifetch/               # 取指单元 (40文件)
+│   ├── idecode/              # 解码单元 (40文件)
+│   ├── rename/               # 重命名单元 (40文件)
+│   ├── issue/                # 发射单元 (38文件)
+│   ├── execute/              # 执行单元 (54文件)
+│   ├── loadstore/            # 加载存储单元 (43文件)
+│   ├── commit/               # 提交单元 (41文件)
+│   ├── mmu/                  # 内存管理单元 (40文件)
+│   ├── level2/               # L2缓存 (41文件)
+│   ├── core/                 # 核心控制 (40文件)
+│   └── agent_mode/           # Agent模式 (4文件)
+├── docs/                     # 文档
+│   ├── modules/              # 模块设计文档
+│   └── submodules/           # 子模块文档
+├── sim/                      # 仿真环境
 │   ├── Makefile
-│   ├── testbench/
-│   └── tests/
-├── fpga/                  # FPGA synthesis
-│   ├── vivado/           # Xilinx Vivado project
-│   └── quartus/          # Intel Quartus project
-├── scripts/              # Utility scripts
+│   └── test_program.hex
+├── tb/                       # 测试平台
+│   └── tb_ocpu_core.sv
+├── fpga/                     # FPGA综合脚本
+│   └── Makefile
+├── scripts/                  # 实用脚本
+│   ├── setup.sh
 │   ├── lint_check.sh
-│   ├── run_tests.py
 │   └── gen_stats.py
-├── tb/                   # Testbench
-├── .github/              # GitHub configuration
-│   ├── workflows/        # CI/CD
-│   └── ISSUE_TEMPLATE/   # Issue templates
-├── README.md             # This file
-├── LICENSE               # Apache 2.0 license
-├── CHANGELOG.md          # Changelog
-└── CONTRIBUTING.md       # Contribution guidelines
+├── .github/                  # GitHub配置
+│   ├── workflows/            # CI/CD
+│   └── ISSUE_TEMPLATE/       # Issue模板
+├── OCPU_TRM_3.0.md          # 技术参考手册
+├── DUAL_MODE_ARCHITECTURE_v4.0.md  # 双模架构文档
+├── DIDT_PLAN_3.0.md         # 验证计划
+└── README.md                # 本文件
 ```
 
-## 📚 Documentation
-
-- [Architecture Documentation](docs/architecture.md) - Detailed architecture description
-- [Developer Guide](docs/developer_guide.md) - Development workflow and conventions
-- [API Reference](docs/api_reference.md) - Interface specifications
-- [Configuration Upgrade 3.0](CONFIG_UPGRADE_3.0.md) - 3nm+512-bit configuration details
-- [Module Design](docs/modules/) - Detailed design documents for each module
-
-## 🎯 Performance Metrics
-
-| Metric | Value | Description |
-|--------|-------|-------------|
-| **IPC** | 3-4x | Compared to baseline configuration |
-| **Memory Bandwidth** | 64GB/s | @1GHz, 512-bit bus |
-| **FP Performance** | 192 GFLOPS | @3GHz, 6 FPUs |
-| **Vector Performance** | 3 TFLOPS | @3GHz, 8 VEC units |
-| **Power Efficiency** | 2-3x | 3nm process advantage |
-
-## 🤝 Contributing
-
-We welcome all forms of contributions! Please see the [Contribution Guidelines](CONTRIBUTING.md) for details.
-
-## 📄 License
-
-This project is open-sourced under the [Apache 2.0](LICENSE) license.
-
-## 🙏 Acknowledgments
-
-Thanks to all developers and community members who have contributed to this project.
-
-## 📞 Contact Us
-
-- GitHub Issues: [Submit Issue](https://github.com/openclawdchip/ocpu/issues)
-- Email: xiao.lin@ia.ac.cn
-
 ---
-
-<p align="center">
-  <b>Made with ❤️ by the OCPU Team</b>
-</p>
-
-# OCPU - Open CPU Core 3.0
-
-<p align="center">
-  <b>高性能64位RISC-V超标量处理器设计 - 3nm工艺 + 512-bit总线</b>
-</p>
-
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-  <img src="https://img.shields.io/badge/RTL%20Files-420-green.svg" alt="RTL Files">
-  <img src="https://img.shields.io/badge/Architecture-RV64I%2FM%2FF%2FD%2FV-orange.svg" alt="Architecture">
-  <img src="https://img.shields.io/badge/Process-3nm-red.svg" alt="Process">
-  <img src="https://img.shields.io/badge/Bus-512--bit-yellow.svg" alt="Bus">
-  <img src="https://img.shields.io/badge/Status-Complete-success.svg" alt="Status">
-</p>
-
----
-
-## 🎯 项目概述
-
-**OCPU** 是一个完全开源的高性能64位RISC-V超标量处理器核心，采用SystemVerilog实现。该设计包含完整的流水线、分支预测、MMU、缓存层次结构以及向量/浮点单元。
-
-### 🏭 3nm工艺 + 512-bit总线特性
-
-- **工艺节点**: 3nm先进工艺
-- **总线宽度**: 512-bit内部总线 (4倍带宽提升)
-- **时钟频率**: 3GHz+ (支持4GHz)
-- **发射宽度**: 16条指令/周期
-- **向量寄存器**: 1024位宽 (VLEN=1024)
-
-> ⚠️ **重要**: 本设计仅支持64位架构 (RV64I/M/F/D/V)，已移除所有32位相关功能。
-
-## 📊 项目统计
-
-| 指标 | 数值 |
-|------|------|
-| **RTL文件总数** | **420个** |
-| **估计代码行数** | ~50,000+行 |
-| **核心模块数** | 11个 |
-| **工艺节点** | 3nm |
-| **总线宽度** | 512-bit |
-
-## 🏗️ 模块架构
-
-| 模块 | 文件数 | 主要功能 |
-|------|--------|----------|
-| [ifetch](rtl/ifetch/) | 40 | 取指单元、分支预测(BTB/GHB/RAS/TAGE)、预取器、I-Cache接口 |
-| [idecode](rtl/idecode/) | 40 | 指令解码、微操作生成、RVC压缩指令、异常检测 |
-| [rename](rtl/rename/) | 40 | 寄存器重命名、RAT、空闲列表、检查点、恢复逻辑 |
-| [issue](rtl/issue/) | 38 | 发射队列、记分板、唤醒逻辑、调度器、分发单元 |
-| [execute](rtl/execute/) | 54 | ALU、MAC、DIV、FPU、VPU、分支执行、旁路网络 |
-| [loadstore](rtl/loadstore/) | 43 | LSU、D-Cache、Store Buffer、Load Buffer、转发、AMO |
-| [commit](rtl/commit/) | 41 | ROB、异常处理、CSR、mstatus/mepc/mcause等 |
-| [mmu](rtl/mmu/) | 40 | TLB(ITLB/DTLB/STLB)、页表遍历、PMP检查 |
-| [level2](rtl/level2/) | 41 | L2缓存、一致性、CHI协议、替换策略、预取 |
-| [core](rtl/core/) | 40 | 核心控制、中断处理、定时器、调试接口、Hart管理 |
-| [include](rtl/include/) | 3 | 全局头文件、参数定义、宏定义 |
-
-## 🚀 核心配置
-
-### 处理器配置 (OCPU 3.0)
-
-| 参数 | 配置 | 说明 |
-|------|------|------|
-| **工艺节点** | 3nm | 先进半导体工艺 |
-| **总线宽度** | 512-bit | 内部数据总线 |
-| **时钟频率** | 3GHz+ | 最高支持4GHz |
-| **发射宽度** | 16 | 每周期发射指令数 |
-| **ROB深度** | 256 | 重排序缓冲区 |
-| **物理寄存器** | 512 | 整数/浮点寄存器 |
-
-### 执行单元配置
-
-| 单元类型 | 数量 | 说明 |
-|----------|------|------|
-| **整数单元 (SX)** | 10 | 单发射ALU |
-| **乘加单元 (MX)** | 6 | MAC运算 |
-| **Load/Store单元** | 8 | 4 Load + 4 Store |
-| **浮点单元 (FPU)** | 6 | IEEE 754-2008 |
-| **向量单元 (VEC)** | 8 | SIMD运算 |
-| **分支单元 (BR)** | 4 | 分支预测执行 |
-
-### 缓存配置
-
-| 缓存 | 大小 | 路数 | 接口宽度 |
-|------|------|------|----------|
-| **L1-I Cache** | 256KB | 8-way | 512-bit |
-| **L1-D Cache** | 64KB | 8-way | 512-bit |
-| **L2 Cache** | 4MB | 16-way | 512-bit |
-
-### 向量寄存器配置
-
-| 参数 | 配置 | 说明 |
-|------|------|------|
-| **向量寄存器数量** | 256 | 物理寄存器 |
-| **向量寄存器宽度** | 1024位 | VLEN=1024 |
-| **最大向量长度** | 16 | LMUL=1时 |
 
 ## 🚀 快速开始
 
 ### 环境要求
 
-- **仿真工具**: Verilator (推荐)、VCS、ModelSim、Xcelium
-- **综合工具**: Xilinx Vivado、Intel Quartus、Synopsys Design Compiler
-- **编译工具**: RISC-V 64位GNU工具链
-- **系统要求**: Linux/macOS、Python 3.8+、Make
+- **操作系统**: Linux (推荐 Ubuntu 22.04+)
+- **仿真器**: Verilator (推荐), VCS, ModelSim
+- **综合工具**: Vivado (Xilinx) 或 Quartus (Intel)
+- **Python**: 3.8+ (用于脚本)
 
 ### 安装依赖
 
 ```bash
-# Ubuntu/Debian
-sudo apt-get install verilator gtkwave python3 python3-pip
-
-# macOS
-brew install verilator gtkwave python3
-
-# 安装Python依赖
-pip3 install -r requirements.txt
-```
-
-### 克隆项目
-
-```bash
+# 克隆仓库
 git clone https://github.com/openclawdchip/ocpu/ocpu.git
 cd ocpu
+
+# 运行安装脚本
+./scripts/setup.sh
+
+# 安装Verilator (Ubuntu)
+sudo apt-get install verilator
 ```
 
 ### 运行仿真
 
 ```bash
 cd sim
-make build
-make run
+
+# 使用Verilator (默认)
+make test
+
+# 使用VCS
+make test SIM=vcs
+
+# 使用ModelSim
+make test SIM=modelsim
 ```
 
-### 运行测试
+### FPGA综合
 
 ```bash
-# 运行基础测试
-make test TEST=basic
+cd fpga
 
-# 运行RISC-V compliance测试
-make test TEST=riscv_compliance
+# Xilinx Vivado
+make bitstream VENDOR=xilinx
 
-# 运行全部测试
-make test_all
+# Intel Quartus
+make bitstream VENDOR=intel
 ```
 
-## 📁 项目结构
+---
 
-```
-ocpu/
-├── rtl/                    # RTL源代码 (420个SystemVerilog文件)
-│   ├── ifetch/            # 取指单元
-│   ├── idecode/           # 解码单元
-│   ├── rename/            # 重命名单元
-│   ├── issue/             # 发射单元
-│   ├── execute/           # 执行单元
-│   ├── loadstore/         # 访存单元
-│   ├── commit/            # 提交单元
-│   ├── mmu/               # 内存管理单元
-│   ├── level2/            # L2缓存
-│   ├── core/              # 核心控制
-│   └── include/           # 全局头文件
-├── docs/                  # 文档
-│   ├── architecture.md    # 架构文档
-│   ├── developer_guide.md # 开发指南
-│   └── modules/           # 模块详细设计
-├── sim/                   # 仿真环境
-│   ├── Makefile
-│   ├── testbench/
-│   └── tests/
-├── fpga/                  # FPGA综合
-│   ├── vivado/           # Xilinx Vivado项目
-│   └── quartus/          # Intel Quartus项目
-├── scripts/              # 辅助脚本
-│   ├── lint_check.sh
-│   ├── run_tests.py
-│   └── gen_stats.py
-├── tb/                   # 测试平台
-├── .github/              # GitHub配置
-│   ├── workflows/        # CI/CD
-│   └── ISSUE_TEMPLATE/   # Issue模板
-├── README.md             # 本文件
-├── LICENSE               # Apache 2.0许可证
-├── CHANGELOG.md          # 变更日志
-└── CONTRIBUTING.md       # 贡献指南
-```
+## 📖 文档
 
-## 📚 文档
-
-- [架构文档](docs/architecture.md) - 详细架构说明
-- [开发指南](docs/developer_guide.md) - 开发流程和约定
-- [API参考](docs/api_reference.md) - 接口规范
-- [配置升级3.0](CONFIG_UPGRADE_3.0.md) - 3nm+512-bit配置详情
-- [模块设计](docs/modules/) - 各模块详细设计文档
-
-## 🎯 性能指标
-
-| 指标 | 数值 | 说明 |
+| 文档 | 描述 | 大小 |
 |------|------|------|
-| **IPC** | 3-4x | 相比基础配置 |
-| **内存带宽** | 64GB/s | @1GHz, 512-bit总线 |
-| **浮点性能** | 192 GFLOPS | @3GHz, 6个FPU |
-| **向量性能** | 3 TFLOPS | @3GHz, 8个VEC单元 |
-| **能效比** | 2-3x | 3nm工艺优势 |
+| [OCPU_TRM_3.0.md](OCPU_TRM_3.0.md) | 技术参考手册 (完整) | 26KB |
+| [DUAL_MODE_ARCHITECTURE_v4.0.md](DUAL_MODE_ARCHITECTURE_v4.0.md) | 双模架构设计 | 19KB |
+| [DIDT_PLAN_3.0.md](DIDT_PLAN_3.0.md) | 验证测试计划 | 21KB |
+| [docs/architecture.md](docs/architecture.md) | 架构概述 | - |
+| [docs/developer_guide.md](docs/developer_guide.md) | 开发者指南 | - |
+| [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md) | 项目总结 | - |
+
+---
+
+## 🔬 技术规格
+
+### 处理器核心
+
+| 参数 | 人类模式 | Agent模式 |
+|------|----------|-----------|
+| 架构 | RV64G + Vector | Agent专用 |
+| 发射宽度 | 16 | 16 |
+| ROB深度 | 256 | N/A (静态) |
+| 物理寄存器 | 512 + 256 | 64专用 |
+| 执行单元 | 44 | 16 ALU |
+| 浮点单元 | 6 FPU | N/A |
+| 向量单元 | 8 VPU (1024-bit) | N/A |
+
+### 存储系统
+
+| 层级 | 大小 | 关联度 | 延迟 |
+|------|------|--------|------|
+| L1-I | 256KB | 8-way | 2 cycles |
+| L1-D | 64KB | 8-way | 3 cycles |
+| L2 | 4MB | 16-way | 10 cycles |
+| SRAM (Agent) | 512KB | 16 Bank | 2 cycles |
+
+### 接口
+
+| 接口 | 协议 | 位宽 |
+|------|------|------|
+| 系统总线 | CHI | 512-bit |
+| 调试 | JTAG/DMI | - |
+| 中断 | PLIC + CLINT | - |
+
+---
+
+## 🧪 验证状态
+
+### 已完成
+
+- [x] 人类模式RTL完整实现 (420文件)
+- [x] Agent模式RTL实现 (4文件)
+- [x] 基础测试平台
+- [x] 仿真环境 (Verilator/VCS/ModelSim)
+- [x] FPGA综合脚本
+- [x] CI/CD工作流
+
+### 进行中
+
+- [ ] UVM验证环境
+- [ ] 形式验证
+- [ ] FPGA原型验证
+- [ ] 性能基准测试
+
+---
 
 ## 🤝 贡献
 
-我们欢迎所有形式的贡献！请查看[贡献指南](CONTRIBUTING.md)了解详情。
+我们欢迎所有形式的贡献！请参阅 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
 
-## 📄 许可证
+### 贡献方式
 
-本项目采用 [Apache 2.0](LICENSE) 许可证开源。
+- 🐛 提交Bug报告
+- 💡 提出新功能建议
+- 🔧 提交代码改进
+- 📖 改进文档
+- 🧪 添加测试用例
+
+---
+
+## 📜 许可证
+
+本项目采用 [MIT许可证](LICENSE)。
+
+---
 
 ## 🙏 致谢
 
-感谢所有为本项目做出贡献的开发者和社区成员。
+- RISC-V International 定义了优秀的开放指令集架构
+- RISC-V社区提供了丰富的工具链和参考实现
+- 所有贡献者的付出和支持
 
-## 📞 联系我们
+---
 
-- GitHub Issues: [提交Issue](https://github.com/openclawdchip/ocpu/issues)
-- 邮件: xiao.lin@ia.ac.cn
+## 📞 联系方式
+
+- **项目主页**: https://github.com/openclawdchip/ocpu
+- **Issue追踪**: https://github.com/openclawdchip/ocpu/issues
+- **讨论区**: https://github.com/openclawdchip/ocpu/discussions
 
 ---
 
 <p align="center">
-  <b>Made with ❤️ by the OCPU Team</b>
+  <strong>OCPU - 面向未来的开放处理器</strong><br>
+  Human Mode 🤝 Agent Mode
 </p>
