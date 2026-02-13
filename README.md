@@ -4,6 +4,276 @@
 
 This code is for educational purposes only. Commercial use is strictly prohibited. We assume no legal liability for any issues arising from violation of this statement.
 
+
+# OCPU - Open CPU
+
+**OCPU (Open CPU)** is an open-source high-performance RISC-V processor design featuring an innovative dual-mode architecture (Human Mode + Agent Mode), supporting the pure 64-bit RISC-V instruction set architecture (RV64I/M/F/D/V).
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![RISC-V](https://img.shields.io/badge/RISC--V-RV64G-blue)](https://riscv.org/)
+[![Architecture](https://img.shields.io/badge/Architecture-Dual--Mode-green)]()
+
+---
+
+## 🎯 Project Introduction
+
+OCPU is a future-oriented open-source processor design that combines traditional out-of-order (OOO) execution with modern Agent static scheduling architectures, providing a unified hardware platform for general-purpose computing and AI acceleration.
+
+### Core Features
+
+- **🔄 Dual-Mode Architecture**: Human Mode (OOO) + Agent Mode (Static Scheduling)
+- **⚡ High Performance**: 16-issue superscalar, 256-entry ROB, 44 execution units
+- **🔧 Pure 64-bit**: Full RV64I/M/F/D/V support, no 32-bit compatibility overhead
+- **📊 Vector Extensions**: RISC-V Vector v1.0, 1024-bit VLEN
+- **💾 Memory Hierarchy**: 256KB L1-I / 64KB L1-D / 4MB L2
+- **🤖 Agent-Native**: Supports Agent real-time code generation and execution
+
+---
+
+## 🏗️ Architecture Overview
+
+### Human Mode
+
+Traditional out-of-order execution architecture optimized for single-thread performance:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  16-wide Fetch  →  Decode  →  Rename  →  Issue  →  Execute  │
+│  256KB L1-I        16-wide     512 PREG    OOO      44 EU    │
+│  BTB/GHB/RAS                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Specifications**:
+- Issue Width: 16
+- ROB Depth: 256
+- Physical Registers: 512 (scalar) + 256 (vector)
+- Execution Units: 10 SX + 6 MX + 6 FPU + 8 VPU + 8 LSU + 4 BR + 2 DIV
+- Branch Prediction: BTB 2048 + GHB 8192 + RAS 32 + TAGE
+
+### Agent Mode
+
+Static scheduling architecture for AI and deterministic computing:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Task Descriptor → Code Generator → Static Scheduler → SRAM │
+│  (128-bit)          (Real-time)     (Deterministic)         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Specifications**:
+- Static Issue Width: 16
+- Schedule Table: 256 entries
+- SRAM: 512KB (16 Bank × 32KB)
+- Latency: 2-cycle deterministic
+- Code Generation: Real-time, no software concept
+
+---
+
+## 📁 Project Structure
+
+```
+ocpu/
+├── rtl/                      # RTL source code (420+ SystemVerilog files)
+│   ├── include/              # Global header files and parameter definitions
+│   ├── ifetch/               # Fetch unit (40 files)
+│   ├── idecode/              # Decode unit (40 files)
+│   ├── rename/               # Rename unit (40 files)
+│   ├── issue/                # Issue unit (38 files)
+│   ├── execute/              # Execute unit (54 files)
+│   ├── loadstore/            # Load/Store unit (43 files)
+│   ├── commit/               # Commit unit (41 files)
+│   ├── mmu/                  # Memory Management Unit (40 files)
+│   ├── level2/               # L2 cache (41 files)
+│   ├── core/                 # Core control (40 files)
+│   └── agent_mode/           # Agent mode (4 files)
+├── docs/                     # Documentation
+│   ├── modules/              # Module design documents
+│   └── submodules/           # Submodule documents
+├── sim/                      # Simulation environment
+│   ├── Makefile
+│   └── test_program.hex
+├── tb/                       # Testbench
+│   └── tb_ocpu_core.sv
+├── fpga/                     # FPGA synthesis scripts
+│   └── Makefile
+├── scripts/                  # Utility scripts
+│   ├── setup.sh
+│   ├── lint_check.sh
+│   └── gen_stats.py
+├── .github/                  # GitHub configuration
+│   ├── workflows/            # CI/CD
+│   └── ISSUE_TEMPLATE/       # Issue templates
+├── OCPU_TRM_3.0.md          # Technical Reference Manual
+├── DUAL_MODE_ARCHITECTURE_v4.0.md  # Dual-mode architecture document
+├── DIDT_PLAN_3.0.md         # Verification plan
+└── README.md                # This file
+```
+
+---
+
+## 🚀 Quick Start
+
+### Requirements
+
+- **Operating System**: Linux (Ubuntu 22.04+ recommended)
+- **Simulator**: Verilator (recommended), VCS, ModelSim
+- **Synthesis Tools**: Vivado (Xilinx) or Quartus (Intel)
+- **Python**: 3.8+ (for scripts)
+
+### Install Dependencies
+
+```bash
+# Clone repository
+git clone https://github.com/openclawdchip/ocpu/ocpu.git
+cd ocpu
+
+# Run setup script
+./scripts/setup.sh
+
+# Install Verilator (Ubuntu)
+sudo apt-get install verilator
+```
+
+### Run Simulation
+
+```bash
+cd sim
+
+# Using Verilator (default)
+make test
+
+# Using VCS
+make test SIM=vcs
+
+# Using ModelSim
+make test SIM=modelsim
+```
+
+### FPGA Synthesis
+
+```bash
+cd fpga
+
+# Xilinx Vivado
+make bitstream VENDOR=xilinx
+
+# Intel Quartus
+make bitstream VENDOR=intel
+```
+
+---
+
+## 📖 Documentation
+
+| Document | Description | Size |
+|----------|-------------|------|
+| [OCPU_TRM_3.0.md](OCPU_TRM_3.0.md) | Technical Reference Manual (Complete) | 26KB |
+| [DUAL_MODE_ARCHITECTURE_v4.0.md](DUAL_MODE_ARCHITECTURE_v4.0.md) | Dual-Mode Architecture Design | 19KB |
+| [DIDT_PLAN_3.0.md](DIDT_PLAN_3.0.md) | Verification Test Plan | 21KB |
+| [docs/architecture.md](docs/architecture.md) | Architecture Overview | - |
+| [docs/developer_guide.md](docs/developer_guide.md) | Developer Guide | - |
+| [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md) | Project Summary | - |
+
+---
+
+## 🔬 Technical Specifications
+
+### Processor Core
+
+| Parameter | Human Mode | Agent Mode |
+|-----------|------------|------------|
+| Architecture | RV64G + Vector | Agent-specific |
+| Issue Width | 16 | 16 |
+| ROB Depth | 256 | N/A (static) |
+| Physical Registers | 512 + 256 | 64 dedicated |
+| Execution Units | 44 | 16 ALU |
+| Floating-Point Units | 6 FPU | N/A |
+| Vector Units | 8 VPU (1024-bit) | N/A |
+
+### Memory System
+
+| Level | Size | Associativity | Latency |
+|-------|------|---------------|---------|
+| L1-I | 256KB | 8-way | 2 cycles |
+| L1-D | 64KB | 8-way | 3 cycles |
+| L2 | 4MB | 16-way | 10 cycles |
+| SRAM (Agent) | 512KB | 16 Bank | 2 cycles |
+
+### Interfaces
+
+| Interface | Protocol | Width |
+|-----------|----------|-------|
+| System Bus | CHI | 512-bit |
+| Debug | JTAG/DMI | - |
+| Interrupt | PLIC + CLINT | - |
+
+---
+
+## 🧪 Verification Status
+
+### Completed
+
+- [x] Human Mode RTL complete implementation (420 files)
+- [x] Agent Mode RTL implementation (4 files)
+- [x] Basic testbench
+- [x] Simulation environment (Verilator/VCS/ModelSim)
+- [x] FPGA synthesis scripts
+- [x] CI/CD workflow
+
+### In Progress
+
+- [ ] UVM verification environment
+- [ ] Formal verification
+- [ ] FPGA prototype verification
+- [ ] Performance benchmark testing
+
+---
+
+## 🤝 Contributing
+
+We welcome all forms of contributions! Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+### Ways to Contribute
+
+- 🐛 Submit bug reports
+- 💡 Propose new feature suggestions
+- 🔧 Submit code improvements
+- 📖 Improve documentation
+- 🧪 Add test cases
+
+---
+
+## 📜 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- RISC-V International for defining the excellent open instruction set architecture
+- The RISC-V community for providing rich toolchains and reference implementations
+- All contributors for their efforts and support
+
+---
+
+## 📞 Contact
+
+- **Project Homepage**: https://github.com/openclawdchip/ocpu
+- **Issue Tracking**: https://github.com/openclawdchip/ocpu/issues
+- **Discussions**: https://github.com/openclawdchip/ocpu/discussions
+
+---
+
+<p align="center">
+  <strong>OCPU - Open Processor for the Future</strong><br>
+  Human Mode 🤝 Agent Mode
+</p>
+
+
+
 # OCPU - Open CPU
 
 **OCPU (Open CPU)** 是一个开源的高性能RISC-V处理器设计，采用创新的双模架构（人类模式+Agent模式），支持纯64位RISC-V指令集架构（RV64I/M/F/D/V）。
