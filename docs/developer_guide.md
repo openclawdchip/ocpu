@@ -27,7 +27,7 @@ This guide provides information for developers who want to contribute to or exte
 
 ```bash
 # Clone repository
-git clone https://github.com/openclawchip/ocpu/ocpu.git
+git clone https://github.com/openclawdchip/ocpu/ocpu.git
 cd ocpu
 
 # Run setup script
